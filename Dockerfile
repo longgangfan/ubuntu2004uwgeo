@@ -23,7 +23,7 @@ RUN apt-get update -qq \
         less \
         git \
 	wget \
-	libfabric \
+	libfabric1 \
 	libxml2 \
 	libgl1-mesa-dev \
         valgrind valgrind-dbg valgrind-mpi \
