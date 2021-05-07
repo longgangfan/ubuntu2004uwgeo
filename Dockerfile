@@ -23,6 +23,8 @@ RUN apt-get update -qq \
         less \
         git \
 	wget \
+	libfabric \
+	libxml2 \
         valgrind valgrind-dbg valgrind-mpi \
         gdb cgdb \
 	python3-sdl2 \
@@ -57,7 +59,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         python3-dev \
         libopenblas-dev \
         libz-dev \
-	libxml2 \
 	libxml2-dev \
 	libnuma-dev \
 	libgl1-mesa-dev \
