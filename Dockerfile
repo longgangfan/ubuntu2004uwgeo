@@ -49,6 +49,18 @@ RUN pip3 install -U setuptools  \
         rise \
         tabulate \
 	numpy
+# add tini, user, volume mount and expose port 8888
+EXPOSE 8888
+ENV NB_USER longgangfan
+ENV NB_WORK /home/$NB_USER
+ADD https://github.com/krallin/tini/releases/download/v0.18.0/tini /tini
+RUN ipcluster nbextension enable \
+&&  chmod +x /tini \
+&&  useradd -m -s /bin/bash -N $NB_USER -g users \
+&&  mkdir -p /$NB_WORK/workspace \
+&&  chown -R $NB_USER:users $NB_WORK
+VOLUME $NB_WORK/workspace
+WORKDIR $NB_WORK
 # install petsc
 FROM base_runtime AS build_base
 # install build requirements
@@ -65,7 +77,18 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
 	libx11-dev \
 	zlib1g-dev \
 	swig \
-	scons
+	autoconf \
+	automake \
+	libtool
+# build ucx
+WORKDIR /tmp/ucx-build
+RUN git clone --progress --verbose  https://github.com.cnpmjs.org/openucx/ucx.git
+WORKDIR /tmp/ucx-build/ucx
+RUN ./autogen.sh
+RUN ./contrib/configure-release --prefix=/usr/local --enable-mt
+RUN make -j8
+RUN make install
+RUN ldconfig
 # build mpi
 WORKDIR /tmp/mpich-build
 ARG MPICH_VERSION="3.4.1"
@@ -111,39 +134,32 @@ RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux
 RUN rm -fr /usr/local/share/petsc 
 # I don't think the petsc py package is needed. 
 RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=/usr/local  pip3 install --no-cache-dir --no-binary=h5py h5py
-
+# vim plugin
+USER $NB_USER
+WORKDIR $NB_WORK
+RUN git clone https://github.com/VundleVim/Vundle.vim.git ./.vim/bundle/Vundle.vim
+RUN wget -O .vimrc  https://raw.githubusercontent.com/longgangfan/vundle-config/main/.vimrc
+RUN wget -O .vimrc.bundles https://raw.githubusercontent.com/longgangfan/vundle-config/main/.vimrc.bundles
+RUN vim +PluginInstall +qall
+WORKDIR $NB_WORK/.vim/bundle/YouCompleteMe
+RUN python install.py
 # minimal install
+USER root
 FROM base_runtime AS minimal
 COPY --from=build_base $VIRTUAL_ENV $VIRTUAL_ENV
 COPY --from=build_base /usr/local /usr/local
+COPY --from=build_base --chown=$NB_USER:users $NB_WORK $NB_WORK
 # Record Python packages, but only record system packages! 
 # Not venv packages, which will be copied directly in.
 RUN PYTHONPATH= /usr/bin/pip3 freeze >/opt/requirements.txt
 # Record manually install apt packages.
 RUN apt-mark showmanual >/opt/installed.txt
 
-# add tini, user, volume mount and expose port 8888
-EXPOSE 8888
-ENV NB_USER longgangfan
-ENV NB_WORK /home/$NB_USER
-ADD https://github.com/krallin/tini/releases/download/v0.18.0/tini /tini
-RUN ipcluster nbextension enable \
-&&  chmod +x /tini \
-&&  useradd -m -s /bin/bash -N $NB_USER -g users \
-&&  mkdir -p /$NB_WORK/workspace \
-&&  chown -R $NB_USER:users $NB_WORK
-VOLUME $NB_WORK/workspace
-WORKDIR $NB_WORK
-
-# vim plugin
-RUN git clone https://github.com/VundleVim/Vundle.vim.git ./.vim/bundle/Vundle.vim
-RUN wget https://raw.githubusercontent.com/longgangfan/vundle-config/main/.vimrc
-RUN wget https://raw.githubusercontent.com/longgangfan/vundle-config/main/.vimrc.bundles
-RUN vim +PluginInstall +qall
 
 #  user, finalise jupyter env
 USER $NB_USER
 WORKDIR $NB_WORK
 RUN ipython profile create --parallel --profile=mpi \
 &&  echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> $NB_WORK/.ipython/profile_mpi/ipcluster_config.py
+RUN echo "export LD_LIBRARY_PATH=/usr/local/lib:\$LD_LIBRARY_PATH" >> $NB_WORK/.bashrc
 CMD ["jupyter", "notebook", "--no-browser", "--ip='0.0.0.0'"]
