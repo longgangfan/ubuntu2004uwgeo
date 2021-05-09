@@ -32,8 +32,7 @@ RUN apt-get update -qq \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install -U setuptools  \
-&&  pip3 install --no-cache-dir \
+RUN pip3 install --no-cache-dir \
         packaging \
         appdirs \
         jupyter \
