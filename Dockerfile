@@ -44,7 +44,6 @@ RUN apt-get update -qq \
         libxcb-sync1 \
         libxshmfence1 \
         libllvm7 \
-	libosmesa6 \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
@@ -125,7 +124,6 @@ RUN ldconfig
 # create venv now for forthcoming python packages
 RUN /usr/bin/python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV} 
 RUN pip3 install --no-cache-dir mpi4py
-RUN pip3 install --no-cache-dir lavavu
 
 # build petsc
 WORKDIR /tmp/petsc-build
@@ -155,6 +153,14 @@ RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux
 RUN rm -fr /usr/local/share/petsc 
 # I don't think the petsc py package is needed. 
 RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=/usr/local  pip3 install --no-cache-dir --no-binary=h5py h5py
+
+# build lavavu
+WORKDIR /tmp/lavavu-build
+RUN git config --global http.postBuffer 524288000
+RUN git clone --progress --verbose https://github.com/lavavu/LavaVu.git
+WORKDIR /tmp/lavavu-build/LavaVu
+RUN make -j8
+COPY ./lavavu $PYTHONPATH
 # vim plugin
 USER $NB_USER
 WORKDIR $NB_WORK
