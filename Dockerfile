@@ -181,6 +181,7 @@ USER $NB_USER
 WORKDIR $NB_WORK
 RUN ipython profile create --parallel --profile=mpi \
 &&  echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> $NB_WORK/.ipython/profile_mpi/ipcluster_config.py
+RUN mkdir .jupyter
 RUN echo "c.ServerApp.allow_remote_access = Yes" >>$NB_WORK/.jupyter/jupyter_lab_config.py
 RUN echo "c.ServerApp.open_browser = False" >>$NB_WORK/.jupyter/jupyter_lab_config.py
 CMD ["jupyter", "lab"]
