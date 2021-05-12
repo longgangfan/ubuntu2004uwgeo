@@ -191,4 +191,5 @@ RUN ipython profile create --parallel --profile=mpi \
 RUN mkdir .jupyter
 RUN echo "c.ServerApp.allow_remote_access = True" >>$NB_WORK/.jupyter/jupyter_lab_config.py
 RUN echo "c.ServerApp.open_browser = False" >>$NB_WORK/.jupyter/jupyter_lab_config.py
+RUN echo "c.ServerApp.ip = '0.0.0.0'" >>$NB_WORK/.jupyter/jupyter_lab_config.py
 CMD ["jupyter", "lab"]
