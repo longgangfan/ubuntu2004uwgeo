@@ -13,7 +13,6 @@ ENV PYTHONPATH=${PYTHONPATH}:${VIRTUAL_ENV}/lib/python${PYVER}/site-packages
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         bash-completion \
-        bash-completion \
         python${PYVER}-minimal \
         python3-virtualenv \
         python3-pip \
@@ -29,6 +28,22 @@ RUN apt-get update -qq \
         valgrind valgrind-dbg valgrind-mpi \
         gdb cgdb \
 	python3-sdl2 \
+        libpng16-16 \
+        libtiff5 \
+        libavcodec58 \
+        libavformat58 \
+        libswscale5 \
+        zlib1g \
+        libxcb-glx0 \
+        libx11-xcb1 \
+        libxcb-dri2-0 \
+        libxdamage1 \
+        libxxf86vm1 \
+        libxcb-dri3-0 \
+        libxcb-present0 \
+        libxcb-sync1 \
+        libxshmfence1 \
+        libllvm7 \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
@@ -75,6 +90,12 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
 	libnuma-dev \
 	libx11-dev \
 	zlib1g-dev \
+        libpng-dev \
+        libtiff-dev \
+        libavcodec-dev \
+        libavformat-dev \
+        libavutil-dev \
+        libswscale-dev \
 	swig \
 	autoconf \
 	automake \
@@ -153,12 +174,13 @@ COPY --from=build_base --chown=$NB_USER:users $NB_WORK $NB_WORK
 RUN PYTHONPATH= /usr/bin/pip3 freeze >/opt/requirements.txt
 # Record manually install apt packages.
 RUN apt-mark showmanual >/opt/installed.txt
-
+RUN ldconfig
 
 #  user, finalise jupyter env
 USER $NB_USER
 WORKDIR $NB_WORK
 RUN ipython profile create --parallel --profile=mpi \
 &&  echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> $NB_WORK/.ipython/profile_mpi/ipcluster_config.py
-RUN echo "export LD_LIBRARY_PATH=/usr/local/lib:\$LD_LIBRARY_PATH" >> $NB_WORK/.bashrc
-CMD ["jupyter", "notebook", "--no-browser", "--ip='0.0.0.0'"]
+RUN echo "c.ServerApp.allow_remote_access = Yes" >>$NB_WORK/.jupyter/jupyter_lab_config.py
+RUN echo "c.ServerApp.open_browser = False" >>$NB_WORK/.jupyter/jupyter_lab_config.py
+CMD ["jupyter", "lab"]
