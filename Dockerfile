@@ -159,8 +159,8 @@ WORKDIR /tmp
 RUN git config --global http.postBuffer 524288000
 RUN git clone --progress --verbose https://github.com/lavavu/LavaVu.git
 WORKDIR /tmp/LavaVu
-RUN make -j8
-COPY /tmp/LavaVu/lavavu $PYTHONPATH
+RUN make -j8 &&\
+    cp -r /tmp/LavaVu/lavavu $PYTHONPATH
 # vim plugin
 USER $NB_USER
 WORKDIR $NB_WORK
@@ -188,8 +188,8 @@ USER $NB_USER
 WORKDIR $NB_WORK
 RUN ipython profile create --parallel --profile=mpi \
 &&  echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> $NB_WORK/.ipython/profile_mpi/ipcluster_config.py
-RUN mkdir .jupyter
-RUN echo "c.ServerApp.allow_remote_access = True" >>$NB_WORK/.jupyter/jupyter_lab_config.py
-RUN echo "c.ServerApp.open_browser = False" >>$NB_WORK/.jupyter/jupyter_lab_config.py
-RUN echo "c.ServerApp.ip = '0.0.0.0'" >>$NB_WORK/.jupyter/jupyter_lab_config.py
+RUN mkdir .jupyter  &&\
+    echo "c.ServerApp.allow_remote_access = True" >>$NB_WORK/.jupyter/jupyter_lab_config.py  &&\
+    echo "c.ServerApp.open_browser = False" >>$NB_WORK/.jupyter/jupyter_lab_config.py   &&\
+    echo "c.ServerApp.ip = '0.0.0.0'" >>$NB_WORK/.jupyter/jupyter_lab_config.py
 CMD ["jupyter", "lab"]
