@@ -28,22 +28,6 @@ RUN apt-get update -qq \
         valgrind valgrind-dbg valgrind-mpi \
         gdb cgdb \
 	python3-sdl2 \
-        libpng16-16 \
-        libtiff5 \
-        libavcodec58 \
-        libavformat58 \
-        libswscale5 \
-        zlib1g \
-        libxcb-glx0 \
-        libx11-xcb1 \
-        libxcb-dri2-0 \
-        libxdamage1 \
-        libxxf86vm1 \
-        libxcb-dri3-0 \
-        libxcb-present0 \
-        libxcb-sync1 \
-        libxshmfence1 \
-        libllvm7 \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
@@ -53,6 +37,7 @@ RUN pip3 install --no-cache-dir \
         jupyter \
         jupytext \
         jupyterlab \
+	jupyter-server-proxy \
         plotly \
         matplotlib \
         pillow \
@@ -62,7 +47,8 @@ RUN pip3 install --no-cache-dir \
         scipy \ 
         rise \
         tabulate \
-	numpy
+	numpy \
+	lavavu-osmesa
 # add tini, user, volume mount and expose port 8888
 EXPOSE 8888
 ENV NB_USER longgangfan
@@ -90,12 +76,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
 	libnuma-dev \
 	libx11-dev \
 	zlib1g-dev \
-        libpng-dev \
-        libtiff-dev \
-        libavcodec-dev \
-        libavformat-dev \
-        libavutil-dev \
-        libswscale-dev \
 	swig \
 	autoconf \
 	automake \
@@ -154,13 +134,6 @@ RUN rm -fr /usr/local/share/petsc
 # I don't think the petsc py package is needed. 
 RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=/usr/local  pip3 install --no-cache-dir --no-binary=h5py h5py
 
-# build lavavu
-WORKDIR /tmp
-RUN git config --global http.postBuffer 524288000
-RUN git clone --progress --verbose https://github.com/lavavu/LavaVu.git
-WORKDIR /tmp/LavaVu
-RUN make -j8 &&\
-    cp -r /tmp/LavaVu/lavavu /opt/venv/lib/python3.8/site-packages
 # vim plugin
 USER $NB_USER
 WORKDIR $NB_WORK
