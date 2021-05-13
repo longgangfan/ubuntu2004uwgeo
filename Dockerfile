@@ -155,10 +155,10 @@ RUN rm -fr /usr/local/share/petsc
 RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=/usr/local  pip3 install --no-cache-dir --no-binary=h5py h5py
 
 # build lavavu
-WORKDIR /tmp/lavavu-build
+WORKDIR /tmp
 RUN git config --global http.postBuffer 524288000
 RUN git clone --progress --verbose https://github.com/lavavu/LavaVu.git
-WORKDIR /tmp/lavavu-build/LavaVu
+WORKDIR /tmp/LavaVu
 RUN make -j8
 COPY ./lavavu $PYTHONPATH
 # vim plugin
