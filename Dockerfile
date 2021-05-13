@@ -160,7 +160,7 @@ RUN git config --global http.postBuffer 524288000
 RUN git clone --progress --verbose https://github.com/lavavu/LavaVu.git
 WORKDIR /tmp/LavaVu
 RUN make -j8 &&\
-    cp -r /tmp/LavaVu/lavavu $PYTHONPATH
+    cp -r /tmp/LavaVu/lavavu /opt/venv/lib/python3.8/site-packages
 # vim plugin
 USER $NB_USER
 WORKDIR $NB_WORK
