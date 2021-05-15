@@ -28,6 +28,7 @@ RUN apt-get update -qq \
         valgrind valgrind-dbg valgrind-mpi \
         gdb cgdb \
 	python3-sdl2 \
+	xvfb \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
@@ -48,7 +49,8 @@ RUN pip3 install --no-cache-dir \
         rise \
         tabulate \
 	numpy \
-	lavavu-osmesa
+	lavavu-osmesa \
+	PyVirtualDisplay
 # add tini, user, volume mount and expose port 8888
 EXPOSE 8888
 ENV NB_USER longgangfan
