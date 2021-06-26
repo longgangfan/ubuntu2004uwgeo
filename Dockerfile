@@ -31,7 +31,7 @@ RUN apt-get update -qq \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 WORKDIR /tmp
-RUN git clone git@github.com:vim/vim.git  \
+RUN git clone https://github.com/vim/vim.git  \
 &&  cd  /tmp/vim/src \
 && ./configure --with-features=huge     \
             --enable-multibyte          \
