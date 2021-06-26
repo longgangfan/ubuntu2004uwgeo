@@ -30,21 +30,6 @@ RUN apt-get update -qq \
 	xvfb \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
-WORKDIR /tmp
-RUN git clone https://github.com/vim/vim.git  \
-&&  cd  /tmp/vim/src \
-&& ./configure --with-features=huge     \
-            --enable-multibyte          \
-	    --enable-rubyinterp=yes      \
-	    --enable-python3interp=dynamic \
-	    --with-python3-config-dir=$(python3-config --configdir)  \
-            --enable-perlinterp=yes   \
-	    --enable-luainterp=yes     \
-	    --enable-gui=auto          \
-	    --enable-cscope             \
-	    --prefix=/usr      \
-&&   make -j32  \
-&&   make install
 RUN pip3 install --no-cache-dir \
         packaging \
         appdirs \
@@ -149,6 +134,22 @@ RUN python3 ./configure --with-debugging=0 --prefix=/usr/local \
 # I don't think the petsc py package is needed. 
 RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=/usr/local  pip3 install --no-cache-dir --no-binary=h5py h5py
 
+# install vim editor
+WORKDIR /tmp
+RUN git clone https://github.com/vim/vim.git  \
+&&  cd  /tmp/vim/src \
+&& ./configure --with-features=huge     \
+            --enable-multibyte          \
+	    --enable-rubyinterp=yes      \
+	    --enable-python3interp=dynamic \
+	    --with-python3-config-dir=$(python3-config --configdir)  \
+            --enable-perlinterp=yes   \
+	    --enable-luainterp=yes     \
+	    --enable-gui=auto          \
+	    --enable-cscope             \
+	    --prefix=/usr/local      \
+&&   make -j32  \
+&&   make install
 # vim plugin
 USER $NB_USER
 WORKDIR $NB_WORK
