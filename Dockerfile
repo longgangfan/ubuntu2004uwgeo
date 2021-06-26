@@ -18,7 +18,6 @@ RUN apt-get update -qq \
         python3-pip \
         python3-numpy \
         python3-numpy-dbg \
-        vim \
         less \
         git \
 	wget \
@@ -31,7 +30,21 @@ RUN apt-get update -qq \
 	xvfb \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
-
+WORKDIR /tmp
+RUN git clone git@github.com:vim/vim.git  \
+&&  cd  /tmp/vim/src
+&& ./configure --with-features=huge     \
+            --enable-multibyte          \
+	    --enable-rubyinterp=yes      \
+	    --enable-python3interp=dynamic \
+	    --with-python3-config-dir=$(python3-config --configdir)  \
+            --enable-perlinterp=yes   \
+	    --enable-luainterp=yes     \
+	    --enable-gui=auto          \
+	    --enable-cscope             \
+	    --prefix=/usr      \
+&&   make -j32  \
+&&   make install
 RUN pip3 install --no-cache-dir \
         packaging \
         appdirs \
@@ -84,25 +97,25 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
 	libtool
 # build ucx
 WORKDIR /tmp/ucx-build
-RUN git clone --progress --verbose  https://github.com.cnpmjs.org/openucx/ucx.git
-WORKDIR /tmp/ucx-build/ucx
-RUN ./autogen.sh
-RUN ./contrib/configure-release --prefix=/usr/local --enable-mt
-RUN make -j8
-RUN make install
-RUN ldconfig
+RUN git clone --progress --verbose  https://github.com.cnpmjs.org/openucx/ucx.git  \
+&& cd /tmp/ucx-build/ucx   \
+&& ./autogen.sh   \
+&& ./contrib/configure-release --prefix=/usr/local --enable-mt  \
+&& make -j8     \
+&& make install   \
+&& ldconfig 
 # build mpi
 WORKDIR /tmp/mpich-build
 ARG MPICH_VERSION="3.4.1"
-RUN wget http://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPICH_VERSION}.tar.gz 
-RUN  tar xvzf mpich-${MPICH_VERSION}.tar.gz 
+RUN wget http://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPICH_VERSION}.tar.gz  \
+&&  tar xvzf mpich-${MPICH_VERSION}.tar.gz 
 WORKDIR /tmp/mpich-build/mpich-${MPICH_VERSION}              
 ARG MPICH_CONFIGURE_OPTIONS="--prefix=/usr/local --with-device=ch4:ucx  --enable-g=option=none --disable-debuginfo --enable-fast=O3,ndebug --without-timing --without-mpit-pvars"
 ARG MPICH_MAKE_OPTIONS="-j8"
-RUN ./configure ${MPICH_CONFIGURE_OPTIONS} 
-RUN make ${MPICH_MAKE_OPTIONS}             
-RUN make install                           
-RUN ldconfig
+RUN ./configure ${MPICH_CONFIGURE_OPTIONS}  \
+&& make ${MPICH_MAKE_OPTIONS}             \
+&& make install                           \
+&& ldconfig
 # create venv now for forthcoming python packages
 RUN /usr/bin/python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV} 
 RUN pip3 install --no-cache-dir mpi4py
@@ -110,8 +123,8 @@ RUN pip3 install --no-cache-dir mpi4py
 # build petsc
 WORKDIR /tmp/petsc-build
 ARG PETSC_VERSION="3.15.0"
-RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz
-RUN tar zxf petsc-lite-${PETSC_VERSION}.tar.gz
+RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz  \
+&& tar zxf petsc-lite-${PETSC_VERSION}.tar.gz
 WORKDIR /tmp/petsc-build/petsc-${PETSC_VERSION}
 RUN python3 ./configure --with-debugging=0 --prefix=/usr/local \
                 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
@@ -128,21 +141,21 @@ RUN python3 ./configure --with-debugging=0 --prefix=/usr/local \
                 --download-superlu=1            \
                 --with-shared-libraries         \
                 --with-cxx-dialect=C++11        \
-                --with-make-np=8
-RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt all
-RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt install
+                --with-make-np=8                \
+&& make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt all  \
+&& make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt install \
 # these aren't needed
-RUN rm -fr /usr/local/share/petsc 
+&& rm -fr /usr/local/share/petsc 
 # I don't think the petsc py package is needed. 
 RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=/usr/local  pip3 install --no-cache-dir --no-binary=h5py h5py
 
 # vim plugin
 USER $NB_USER
 WORKDIR $NB_WORK
-RUN git clone https://github.com/VundleVim/Vundle.vim.git ./.vim/bundle/Vundle.vim
-RUN wget -O .vimrc  https://raw.githubusercontent.com/longgangfan/vundle-config/main/.vimrc
-RUN wget -O .vimrc.bundles https://raw.githubusercontent.com/longgangfan/vundle-config/main/.vimrc.bundles
-RUN vim +PluginInstall +qall
+RUN git clone https://github.com/VundleVim/Vundle.vim.git ./.vim/bundle/Vundle.vim   \
+&& wget -O .vimrc  https://raw.githubusercontent.com/longgangfan/vundle-config/main/.vimrc  \
+&& wget -O .vimrc.bundles https://raw.githubusercontent.com/longgangfan/vundle-config/main/.vimrc.bundles  \
+&& vim +PluginInstall +qall
 WORKDIR $NB_WORK/.vim/bundle/YouCompleteMe
 RUN python install.py
 # minimal install
@@ -153,10 +166,10 @@ COPY --from=build_base /usr/local /usr/local
 COPY --from=build_base --chown=$NB_USER:users $NB_WORK $NB_WORK
 # Record Python packages, but only record system packages! 
 # Not venv packages, which will be copied directly in.
-RUN PYTHONPATH= /usr/bin/pip3 freeze >/opt/requirements.txt
+RUN PYTHONPATH= /usr/bin/pip3 freeze >/opt/requirements.txt \
 # Record manually install apt packages.
-RUN apt-mark showmanual >/opt/installed.txt
-RUN ldconfig
+&& apt-mark showmanual >/opt/installed.txt \
+&& ldconfig
 
 #  user, finalise jupyter env
 USER $NB_USER
