@@ -32,7 +32,7 @@ RUN apt-get update -qq \
 &&  rm -rf /var/lib/apt/lists/*
 WORKDIR /tmp
 RUN git clone git@github.com:vim/vim.git  \
-&&  cd  /tmp/vim/src
+&&  cd  /tmp/vim/src \
 && ./configure --with-features=huge     \
             --enable-multibyte          \
 	    --enable-rubyinterp=yes      \
