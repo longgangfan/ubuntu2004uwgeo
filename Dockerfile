@@ -139,7 +139,7 @@ RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=/usr/local  pip3 install --no-cache-dir --no
 WORKDIR /tmp
 RUN git clone https://github.com/vim/vim.git  \
 &&  cd  /tmp/vim/src \
-&& export CFLAGS="-I/usr/include/python3.8"
+&& export CFLAGS="-I/usr/include/python3.8"  \
 && ./configure --with-features=huge     \
             --enable-multibyte          \
 	    --enable-rubyinterp=yes      \
