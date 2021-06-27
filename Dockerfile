@@ -79,7 +79,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
 	swig \
 	autoconf \
 	automake \
-	libtool
+	libtool   \
+	libncurses5-dev
 # build ucx
 WORKDIR /tmp/ucx-build
 RUN git clone --progress --verbose  https://github.com.cnpmjs.org/openucx/ucx.git  \
