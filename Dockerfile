@@ -28,6 +28,8 @@ RUN apt-get update -qq \
         gdb cgdb \
 	python3-sdl2 \
 	xvfb \
+	vim \
+	vim-gtk3
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 RUN pip3 install --no-cache-dir \
@@ -135,23 +137,6 @@ RUN rm -fr /usr/local/share/petsc
 # I don't think the petsc py package is needed. 
 RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=/usr/local  pip3 install --no-cache-dir --no-binary=h5py h5py
 
-# install vim editor
-WORKDIR /tmp
-RUN git clone https://github.com/vim/vim.git  \
-&&  cd  /tmp/vim/src \
-&& export CFLAGS="-I/usr/include/python3.8"  \
-&& ./configure --with-features=huge     \
-            --enable-multibyte          \
-	    --enable-rubyinterp=yes      \
-	    --enable-python3interp=dynamic \
-	    --with-python3-config-dir=$(python3-config --configdir)  \
-            --enable-perlinterp=yes   \
-	    --enable-luainterp=yes     \
-	    --enable-gui=auto          \
-	    --enable-cscope             \
-	    --prefix=/usr/local      \
-&&   make -j32  \
-&&   make install
 # vim plugin
 USER $NB_USER
 WORKDIR $NB_WORK
