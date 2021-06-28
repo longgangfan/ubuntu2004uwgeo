@@ -130,12 +130,10 @@ RUN python3 ./configure --with-debugging=0 --prefix=/usr/local \
                 --with-shared-libraries         \
                 --with-cxx-dialect=C++11        \
                 --with-make-np=8                
-RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt all  
-RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt install
+RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt all  \
+&& make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt install
 # these aren't needed
 RUN rm -fr /usr/local/share/petsc 
-# I don't think the petsc py package is needed. 
-RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=/usr/local  pip3 install --no-cache-dir --no-binary=h5py h5py
 
 # vim plugin
 USER $NB_USER
