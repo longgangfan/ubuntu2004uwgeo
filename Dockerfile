@@ -29,7 +29,7 @@ RUN apt-get update -qq \
 	python3-sdl2 \
 	xvfb \
 	vim \
-	vim-gtk3
+	vim-gtk3 \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 RUN pip3 install --no-cache-dir \
